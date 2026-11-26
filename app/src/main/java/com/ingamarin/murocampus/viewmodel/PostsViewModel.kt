@@ -29,16 +29,38 @@ class PostsViewModel(private val repo: PostRepository) : ViewModel() {
     private val _lista = MutableStateFlow<UiState<List<Post>>>(UiState.Cargando)
     val lista: StateFlow<UiState<List<Post>>> = _lista.asStateFlow()
 
+    // ---- Filtro por usuario: null significa Todos ----
+    private val _usuarioFiltro = MutableStateFlow<Int?>(null)
+    val usuarioFiltro: StateFlow<Int?> = _usuarioFiltro.asStateFlow()
+
+    private var trabajoLista: Job? = null
+
     init { cargar() }
 
-    /** Pide la lista: Cargando -> Exito o Error. Tambien lo usa el boton Reintentar. */
+    /**
+     * Pide la lista segun el filtro: Cargando -> Exito o Error.
+     * Tambien lo usa el boton Reintentar (respeta el filtro elegido).
+     */
     fun cargar() {
-        viewModelScope.launch {
+        trabajoLista?.cancel() // si el usuario cambia rapido de chip, solo vale la ultima peticion
+        trabajoLista = viewModelScope.launch {
             _lista.value = UiState.Cargando
-            repo.listar()
+            val userId = _usuarioFiltro.value
+            val resultado = if (userId == null) {
+                repo.listar()                 // GET posts
+            } else {
+                repo.porUsuario(userId)       // GET posts?userId=N
+            }
+            resultado
                 .onSuccess { _lista.value = UiState.Exito(it) }
                 .onFailure { _lista.value = UiState.Error(mensajeDe(it)) }
         }
+    }
+
+    /** Guarda el filtro y recarga la lista. */
+    fun filtrar(userId: Int?) {
+        _usuarioFiltro.value = userId
+        cargar()
     }
 
     // ---- Detalle de una publicacion ----
