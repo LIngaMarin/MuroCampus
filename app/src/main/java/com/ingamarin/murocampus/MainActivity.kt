@@ -4,7 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -15,7 +14,11 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.ingamarin.murocampus.ui.PantallaLista
 import com.ingamarin.murocampus.ui.theme.MuroCampusTheme
+import com.ingamarin.murocampus.viewmodel.PostsViewModel
+import com.ingamarin.murocampus.viewmodel.PostsViewModelFactory
 
 class MainActivity : ComponentActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
@@ -24,6 +27,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             MuroCampusTheme {
+                val vm: PostsViewModel = viewModel(factory = PostsViewModelFactory.Factory)
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     topBar = {
@@ -36,8 +40,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 ) { innerPadding ->
-                    // Pantalla vacia: las pantallas se agregan desde el Paso 6
-                    Box(Modifier.fillMaxSize().padding(innerPadding))
+                    PantallaLista(vm, Modifier.padding(innerPadding))
                 }
             }
         }
