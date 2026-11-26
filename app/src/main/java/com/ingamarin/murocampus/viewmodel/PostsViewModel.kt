@@ -75,6 +75,7 @@ class PostsViewModel(private val repo: PostRepository) : ViewModel() {
      * con async. Si cualquiera de las dos falla, todo el detalle muestra el error.
      */
     fun abrir(id: Int) {
+        _borrado.value = null    // [Fase 2] se limpia el mensaje de borrado anterior
         trabajoDetalle?.cancel() // si habia otro detalle cargando, se cancela
         trabajoDetalle = viewModelScope.launch {
             _detalle.value = UiState.Cargando
@@ -111,5 +112,19 @@ class PostsViewModel(private val repo: PostRepository) : ViewModel() {
     /** Al abrir el formulario de nuevo, se borra el mensaje anterior. */
     fun reiniciarPublicacion() {
         _publicacion.value = null
+    }
+
+    // ---- [Fase 2] Borrar una publicacion: null = aun no se pidio ----
+    private val _borrado = MutableStateFlow<UiState<Int>?>(null)
+    val borrado: StateFlow<UiState<Int>?> = _borrado.asStateFlow()
+
+    /** DELETE posts/{id}: guarda el codigo HTTP de la respuesta (JSONPlaceholder responde 200). */
+    fun borrar(id: Int) {
+        viewModelScope.launch {
+            _borrado.value = UiState.Cargando
+            repo.borrar(id)
+                .onSuccess { _borrado.value = UiState.Exito(it) }
+                .onFailure { _borrado.value = UiState.Error(mensajeDe(it)) }
+        }
     }
 }

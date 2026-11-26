@@ -3,7 +3,9 @@ package com.ingamarin.murocampus.data.remote
 import com.ingamarin.murocampus.model.Comentario
 import com.ingamarin.murocampus.model.NuevoPost
 import com.ingamarin.murocampus.model.Post
+import retrofit2.Response
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
@@ -35,4 +37,8 @@ interface PostApi {
     /** POST posts -> @Body envia el objeto como JSON en el cuerpo de la peticion */
     @POST("posts")
     suspend fun crear(@Body nuevo: NuevoPost): Post
+
+    /** [Fase 2] DELETE posts/{id} -> respuesta vacia; Response permite revisar el codigo (200) */
+    @DELETE("posts/{id}")
+    suspend fun borrar(@Path("id") id: Int): Response<Unit>
 }

@@ -4,6 +4,7 @@ import com.ingamarin.murocampus.data.remote.PostApi
 import com.ingamarin.murocampus.model.Comentario
 import com.ingamarin.murocampus.model.NuevoPost
 import com.ingamarin.murocampus.model.Post
+import retrofit2.HttpException
 import kotlin.coroutines.cancellation.CancellationException
 
 /**
@@ -16,6 +17,9 @@ interface PostRepository {
     suspend fun comentarios(id: Int): Result<List<Comentario>>
     suspend fun porUsuario(userId: Int): Result<List<Post>>
     suspend fun crear(nuevo: NuevoPost): Result<Post>
+
+    /** [Fase 2] Devuelve el codigo HTTP de la respuesta (200 si se borro). */
+    suspend fun borrar(id: Int): Result<Int>
 }
 
 /** Implementacion que pide los datos al servicio web con Retrofit. */
@@ -30,6 +34,12 @@ class PostRepositoryRemote(private val api: PostApi) : PostRepository {
     override suspend fun porUsuario(userId: Int) = llamar { api.porUsuario(userId) }
 
     override suspend fun crear(nuevo: NuevoPost) = llamar { api.crear(nuevo) }
+
+    /** [Fase 2] Revisa el codigo: si no es 2xx se convierte en HttpException (y luego en Result.failure). */
+    override suspend fun borrar(id: Int) = llamar {
+        val respuesta = api.borrar(id)
+        if (respuesta.isSuccessful) respuesta.code() else throw HttpException(respuesta)
+    }
 
     /**
      * Un solo try/catch para las cinco funciones.
