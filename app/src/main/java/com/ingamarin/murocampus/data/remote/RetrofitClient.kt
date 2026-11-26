@@ -1,6 +1,7 @@
 package com.ingamarin.murocampus.data.remote
 
 import kotlinx.serialization.json.Json
+import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -18,8 +19,18 @@ object RetrofitClient {
     // ignoreUnknownKeys: si el servidor agrega un campo nuevo, la app no falla
     private val json = Json { ignoreUnknownKeys = true }
 
+    // [Fase 2] Interceptor que agrega el encabezado Accept: application/json a TODAS las peticiones
+    private val encabezadoJson = Interceptor { chain ->
+        val peticion = chain.request().newBuilder()
+            .header("Accept", "application/json")
+            .build()
+        chain.proceed(peticion)
+    }
+
     // Registro del trafico HTTP en Logcat (filtro "okhttp"). Solo para desarrollo.
+    // El de encabezado va primero para que el log muestre la peticion ya con el Accept.
     private val cliente = OkHttpClient.Builder()
+        .addInterceptor(encabezadoJson)
         .addInterceptor(HttpLoggingInterceptor().apply {
             level = HttpLoggingInterceptor.Level.BODY
         })
