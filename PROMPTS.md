@@ -2,7 +2,27 @@
 
 Mejoras de MuroCampus hechas con ayuda de IA, sin romper MVVM + Repository.
 
-> **Nota honesta:** por falta de tiempo no usé Gemini en Android Studio. El asistente de IA que usé fue **Claude** (Anthropic), en un chat. Las filas de abajo son los pedidos reales que le hice. Revisé, probé y ajusté todo lo que generó.
+> **Nota:** la guía pide usar el agente de **Gemini** en Android Studio, pero **se me acabaron los tokens/cuota de Gemini**. Por eso usé **Claude** (Anthropic) como asistente de IA. Le mandé el mismo tipo de prompt que le habría mandado al agente de Gemini (abajo), y las filas de la tabla son los pedidos de cada mejora. Revisé, probé y ajusté todo lo que generó.
+
+## Prompt general (el que habría enviado al agente de Gemini, enviado a Claude)
+
+```
+Eres un asistente de Android (Kotlin + Jetpack Compose). Trabaja sobre mi proyecto MuroCampus,
+rama mejora-ia. Consume JSONPlaceholder con Retrofit + OkHttp + kotlinx.serialization y usa
+MVVM + Repository: la pantalla solo habla con PostsViewModel, el ViewModel solo con la interface
+PostRepository, y PostRepositoryRemote devuelve Result<...> (nunca deja escapar excepciones y
+relanza CancellationException).
+
+Quiero 3 mejoras, una por commit:
+1. Un Interceptor de OkHttp que agregue "Accept: application/json" a todas las peticiones.
+2. Borrar una publicación desde el detalle con @DELETE("posts/{id}") revisando el código
+   con Response<Unit>.
+3. Un campo de búsqueda que filtre por título las publicaciones ya descargadas.
+
+Reglas: nada de Retrofit, PostApi, Response ni HttpException en el ViewModel; ninguna llamada
+a la API desde un Composable; sin GlobalScope ni runBlocking; sin catch vacíos; URL con https.
+Explícame qué archivo cambia en cada mejora y por qué.
+```
 
 | Prompt que escribí | Qué respondió la IA | Qué cambié o descarté | Por qué |
 |---|---|---|---|
