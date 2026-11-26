@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ingamarin.murocampus.data.PostRepository
 import com.ingamarin.murocampus.model.Comentario
+import com.ingamarin.murocampus.model.NuevoPost
 import com.ingamarin.murocampus.model.Post
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
@@ -91,5 +92,24 @@ class PostsViewModel(private val repo: PostRepository) : ViewModel() {
                 }
             }
         }
+    }
+
+    // ---- Crear una publicacion: null = aun no se envio ----
+    private val _publicacion = MutableStateFlow<UiState<Post>?>(null)
+    val publicacion: StateFlow<UiState<Post>?> = _publicacion.asStateFlow()
+
+    /** POST posts con el NuevoPost en el cuerpo (@Body). JSONPlaceholder responde con id = 101. */
+    fun publicar(titulo: String, texto: String) {
+        viewModelScope.launch {
+            _publicacion.value = UiState.Cargando
+            repo.crear(NuevoPost(userId = 1, title = titulo.trim(), body = texto.trim()))
+                .onSuccess { _publicacion.value = UiState.Exito(it) }
+                .onFailure { _publicacion.value = UiState.Error(mensajeDe(it)) }
+        }
+    }
+
+    /** Al abrir el formulario de nuevo, se borra el mensaje anterior. */
+    fun reiniciarPublicacion() {
+        _publicacion.value = null
     }
 }

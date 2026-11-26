@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -21,6 +22,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.ingamarin.murocampus.ui.PantallaCrear
 import com.ingamarin.murocampus.ui.PantallaDetalle
 import com.ingamarin.murocampus.ui.PantallaLista
 import com.ingamarin.murocampus.ui.theme.MuroCampusTheme
@@ -38,10 +40,14 @@ class MainActivity : ComponentActivity() {
 
                 // Navegacion simple: null = lista; un numero = detalle de esa publicacion
                 var idSeleccionado by rememberSaveable { mutableStateOf<Int?>(null) }
+                var creando by rememberSaveable { mutableStateOf(false) } // true = formulario de crear
                 val estadoScroll = rememberLazyListState()
 
-                // Boton Atras del sistema: desde el detalle vuelve a la lista (sin recargarla)
-                BackHandler(enabled = idSeleccionado != null) { idSeleccionado = null }
+                // Boton Atras del sistema: desde el detalle o el formulario vuelve a la lista (sin recargarla)
+                BackHandler(enabled = idSeleccionado != null || creando) {
+                    idSeleccionado = null
+                    creando = false
+                }
 
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
@@ -53,10 +59,23 @@ class MainActivity : ComponentActivity() {
                                 titleContentColor = MaterialTheme.colorScheme.onPrimary
                             )
                         )
+                    },
+                    floatingActionButton = {
+                        // Boton + solo en la lista: abre el formulario de crear
+                        if (idSeleccionado == null && !creando) {
+                            FloatingActionButton(onClick = {
+                                vm.reiniciarPublicacion()
+                                creando = true
+                            }) {
+                                Text("+", style = MaterialTheme.typography.headlineMedium)
+                            }
+                        }
                     }
                 ) { innerPadding ->
                     val id = idSeleccionado
-                    if (id == null) {
+                    if (creando) {
+                        PantallaCrear(vm, Modifier.padding(innerPadding))
+                    } else if (id == null) {
                         PantallaLista(
                             vm = vm,
                             onAbrir = { nuevoId ->
