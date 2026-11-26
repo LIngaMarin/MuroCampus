@@ -2,19 +2,26 @@ package com.ingamarin.murocampus
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.ingamarin.murocampus.ui.PantallaDetalle
 import com.ingamarin.murocampus.ui.PantallaLista
 import com.ingamarin.murocampus.ui.theme.MuroCampusTheme
 import com.ingamarin.murocampus.viewmodel.PostsViewModel
@@ -28,6 +35,14 @@ class MainActivity : ComponentActivity() {
         setContent {
             MuroCampusTheme {
                 val vm: PostsViewModel = viewModel(factory = PostsViewModelFactory.Factory)
+
+                // Navegacion simple: null = lista; un numero = detalle de esa publicacion
+                var idSeleccionado by rememberSaveable { mutableStateOf<Int?>(null) }
+                val estadoScroll = rememberLazyListState()
+
+                // Boton Atras del sistema: desde el detalle vuelve a la lista (sin recargarla)
+                BackHandler(enabled = idSeleccionado != null) { idSeleccionado = null }
+
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     topBar = {
@@ -40,7 +55,20 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 ) { innerPadding ->
-                    PantallaLista(vm, Modifier.padding(innerPadding))
+                    val id = idSeleccionado
+                    if (id == null) {
+                        PantallaLista(
+                            vm = vm,
+                            onAbrir = { nuevoId ->
+                                idSeleccionado = nuevoId
+                                vm.abrir(nuevoId)
+                            },
+                            modifier = Modifier.padding(innerPadding),
+                            estadoScroll = estadoScroll
+                        )
+                    } else {
+                        PantallaDetalle(id, vm, Modifier.padding(innerPadding))
+                    }
                 }
             }
         }
